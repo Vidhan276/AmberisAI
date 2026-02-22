@@ -22,8 +22,8 @@ def predict(image_path):
     warnings.filterwarnings('ignore')
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
-    import tf_keras as keras_compat
-    from tf_keras.models import load_model
+    import tensorflow as tf
+    from tensorflow.keras.models import load_model
     from PIL import Image, ImageOps
     import numpy as np
 
