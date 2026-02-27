@@ -3,16 +3,16 @@ flask-cors==4.0.0
 gunicorn==21.2.0
 python-dotenv==1.0.1
 
-# Core ML stack (Python 3.11 compatible)
+# Core ML stack
 numpy==1.26.4
 pandas==2.0.3
 scikit-learn==1.5.1
 joblib==1.3.2
 xgboost==2.0.3
 
-# TensorFlow (Stable for Render)
-tensorflow==2.12.0
-keras==2.12.0
+# TensorFlow — 2.15 is the first version supporting numpy 1.26 + Python 3.11
+tensorflow==2.15.0
+# DO NOT add keras separately — it's bundled inside tensorflow
 
 # Image processing
 opencv-python-headless==4.8.1.78
@@ -21,10 +21,10 @@ pillow==10.0.1
 # Audio processing
 librosa==0.10.1
 soundfile==0.12.1
-scipy==1.10.1
-numba==0.57.1
-llvmlite==0.40.1
+scipy==1.11.4
+numba==0.59.1        # ← supports numpy 1.26.x
+llvmlite==0.42.0     # ← must match numba 0.59.x
 
 # Utilities
-matplotlib==3.7.2
+matplotlib==3.8.3
 requests==2.31.0
