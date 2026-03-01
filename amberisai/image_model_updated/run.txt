@@ -1,0 +1,1 @@
+"C:\Users\Vidhant\OneDrive - Vishwakarma Institute of Technology\Desktop\image_model\.venv-new\Scripts\python.exe" app.py run
