@@ -1,0 +1,49 @@
+# ============================================================
+# AmberisAI — Audio Module Requirements
+# ============================================================
+# Production-grade infant cry classification system.
+# Tested with Python 3.9 / 3.10 / 3.11
+#
+# Install:
+#   pip install -r requirements.txt
+#
+# Note: soundfile and audioread are transitive librosa dependencies
+# included here for explicit version pinning.
+# ============================================================
+
+# ── Core Audio Processing ──────────────────────────────────
+librosa==0.10.2              # Audio feature extraction (MFCC, Mel, ZCR, etc.)
+numpy>=1.23.0,<2.0.0         # Numerical computing (pinned below 2.0 for librosa compat)
+scipy>=1.10.0                # Signal processing utilities (used by librosa)
+soundfile>=0.12.1            # WAV file I/O backend for librosa
+audioread>=3.0.0             # MP3 file I/O backend (ffmpeg wrapper)
+
+# ── Machine Learning ───────────────────────────────────────
+scikit-learn>=1.3.0          # Random Forest, StandardScaler, LabelEncoder, metrics
+xgboost>=2.0.0               # XGBoost gradient boosted trees
+
+# ── Visualization ──────────────────────────────────────────
+matplotlib>=3.7.0            # All plotting (waveform, spectrogram, MFCC, importance)
+
+# ── Serialization ─────────────────────────────────────────
+# pickle is part of Python stdlib — no install needed.
+
+# ── Optional: Web API Integration ─────────────────────────
+# Uncomment to enable Flask inference server
+# flask>=2.3.0
+# flask-cors>=4.0.0
+
+# ── Optional: Jupyter / Research Exploration ──────────────
+# Uncomment for notebook-based experimentation
+# jupyter>=1.0.0
+# ipython>=8.0.0
+# seaborn>=0.12.0              # Enhanced statistical plots
+# pandas>=2.0.0                # Dataset exploration
+
+# ── Optional: Audio Augmentation (for training robustness) ─
+# Uncomment to use noise injection / pitch shifting in training
+# audiomentations>=0.33.0
+
+# ── Optional: Evaluation & Logging ────────────────────────
+# Uncomment for experiment tracking
+# mlflow>=2.8.0
