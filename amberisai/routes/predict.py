@@ -10,15 +10,16 @@ from models.database import save_session
 
 predict_bp = Blueprint('predict', __name__)
 
-_ROUTES_DIR    = os.path.dirname(os.path.abspath(__file__))
-_AMBERISAI_DIR = os.path.dirname(_ROUTES_DIR)
-_HACKATHON_DIR = os.path.dirname(_AMBERISAI_DIR)
+# ── PATH RESOLUTION (Render root = amberisai/) ────────────────────────────────
+_ROUTES_DIR    = os.path.dirname(os.path.abspath(__file__))  # amberisai/routes
+_AMBERISAI_DIR = os.path.dirname(_ROUTES_DIR)                # amberisai  ← deployment root
 
-AUDIO_MODULE_DIR = os.path.join(_HACKATHON_DIR, 'audio_module')
-IMAGE_MODULE_DIR = os.path.join(_HACKATHON_DIR, 'image_model_updated')
+AUDIO_MODULE_DIR = os.path.join(_AMBERISAI_DIR, 'audio_module')
+IMAGE_MODULE_DIR = os.path.join(_AMBERISAI_DIR, 'image_model_updated')
 
-if _HACKATHON_DIR not in sys.path:
-    sys.path.insert(0, _HACKATHON_DIR)
+if _AMBERISAI_DIR not in sys.path:
+    sys.path.insert(0, _AMBERISAI_DIR)
+
 
 # ── AUDIO ─────────────────────────────────────────────────────────────────────
 _audio_predictor = None
@@ -39,7 +40,6 @@ _image_class_names = None
 def get_image_model():
     global _image_model, _image_class_names
     if _image_model is None:
-        # tf_keras is TF2-compatible Keras — works with Teachable Machine h5 models
         from tf_keras.models import load_model
 
         for fname in ['keras_model.h5', 'keras_Model.h5']:
@@ -74,13 +74,12 @@ def predict_image_file(image_path: str) -> dict:
 
     model, class_names = get_image_model()
 
-    # Preprocess — identical to original app.py
-    data = np.ndarray(shape=(1, 224, 224, 3), dtype=np.float32)
+    data  = np.ndarray(shape=(1, 224, 224, 3), dtype=np.float32)
     image = Image.open(image_path).convert("RGB")
     image = ImageOps.fit(image, (224, 224), Image.Resampling.LANCZOS)
     image_array = np.asarray(image)
-    normalized = (image_array.astype(np.float32) / 127.5) - 1
-    data[0] = normalized
+    normalized  = (image_array.astype(np.float32) / 127.5) - 1
+    data[0]     = normalized
 
     prediction = model.predict(data, verbose=0)
     index      = int(np.argmax(prediction))
