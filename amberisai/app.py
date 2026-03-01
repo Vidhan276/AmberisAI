@@ -29,7 +29,28 @@ def routes_debug():
     """Lists every registered route — helps find the correct URL"""
     routes = [str(rule) for rule in app.url_map.iter_rules()]
     return jsonify(routes), 200
-# ─────────────────────────────────────────────────────────────
+
+@app.route("/debug-models")
+def debug_models():
+    import os
+    base = os.path.dirname(os.path.abspath(__file__))
+    
+    audio_model_dir = os.path.join(base, "audio_module", "models")
+    db_model_dir    = os.path.join(base, "models")
+    
+    return {
+        "audio_module_models": {
+            "path":   audio_model_dir,
+            "exists": os.path.exists(audio_model_dir),
+            "files":  os.listdir(audio_model_dir) if os.path.exists(audio_model_dir) else "NOT FOUND"
+        },
+        "db_models": {
+            "path":   db_model_dir,
+            "exists": os.path.exists(db_model_dir),
+            "files":  os.listdir(db_model_dir) if os.path.exists(db_model_dir) else "NOT FOUND"
+        }
+    }, 200
+
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
