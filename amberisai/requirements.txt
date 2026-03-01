@@ -4,17 +4,17 @@ gunicorn==21.2.0
 python-dotenv==1.0.0
 
 # Core ML stack
-numpy==2.4.2
+numpy==2.3.0            # ← <2.4 (numba limit) AND >=1.26.4 (scipy limit)
 pandas==2.2.3
 scikit-learn==1.8.0
 joblib==1.5.3
 xgboost==3.2.0
 
-# TensorFlow + Keras (standalone in 3.x)
+# TensorFlow + Keras
 tensorflow==2.20.0
 keras==3.13.2
 
-# Image processing (headless = no GUI, required for servers)
+# Image processing
 opencv-python-headless==4.11.0.86
 pillow==12.1.1
 
