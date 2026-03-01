@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, jsonify
 from flask_cors import CORS
 from routes.predict import predict_bp
 from routes.auth import auth_bp
@@ -8,21 +8,34 @@ import os
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
-
 app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024
 app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['STATIC_FOLDER'] = 'static/visuals'
-
 os.makedirs('uploads', exist_ok=True)
 os.makedirs('static/visuals', exist_ok=True)
 os.makedirs('data', exist_ok=True)
-
 init_db()
-
 app.register_blueprint(predict_bp)
 app.register_blueprint(auth_bp)
 app.register_blueprint(agent_bp)
 
+# ── ADD THESE TWO ROUTES ──────────────────────────────────────
+@app.route("/health")
+def health():
+    return {"status": "ok"}, 200
+
+@app.route("/routes-debug")
+def routes_debug():
+    """Lists every registered route — helps find the correct URL"""
+    routes = [str(rule) for rule in app.url_map.iter_rules()]
+    return jsonify(routes), 200
+# ─────────────────────────────────────────────────────────────
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
+```
+
+After deploying, hit:
+```
+https://amberisai-backend-ho4b.onrender.com/routes-debug
