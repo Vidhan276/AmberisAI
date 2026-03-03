@@ -69,7 +69,7 @@ select.setup-inp option{background:var(--black);}
 .allergy-chip.active{border-color:var(--white);color:var(--black);background:var(--white);}
 .age-big{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:56px;line-height:1;margin-bottom:8px;}
 .age-big span{color:var(--grey);font-size:22px;margin-left:6px;}
-input[type="range"]{width:100%;-webkit-appearance:none;height:2px;background:var(--mid);outline:none;cursor:pointer;}
+input[type="range"]{width:100%;appearance:none;height:2px;background:var(--mid);outline:none;cursor:pointer;}
 input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;background:var(--white);cursor:pointer;}
 .setup-actions{display:flex;gap:12px;margin-top:40px;}
 .btn-setup-primary{flex:1;padding:16px;background:var(--white);color:var(--black);border:none;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:18px;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;}
@@ -318,6 +318,8 @@ canvas#waveform{width:100%;height:64px;display:block;}
   appId: "1:456833383952:web:72e22eb49254493c725495",
   measurementId: "G-MTYXEF3NZ7"
 };
+  
+  firebase.initializeApp(firebaseConfig);
   const auth = firebase.auth();
   const googleProvider = new firebase.auth.GoogleAuthProvider();
 </script>
@@ -973,12 +975,6 @@ async function triggerGoogleSignIn(){
     if(e.code==='auth/popup-blocked') showToast('ALLOW POPUPS FOR GOOGLE SIGN-IN');
     else if(e.code!=='auth/popup-closed-by-user') showToast('GOOGLE SIGN-IN ERROR: '+e.message);
   }
-}
-
-document.getElementById('btn-google-login').addEventListener('click',triggerGoogleSignIn);
-document.getElementById('btn-google-register').addEventListener('click',triggerGoogleSignIn);
-    }
-  });
 }
 
 document.getElementById('btn-google-login').addEventListener('click',triggerGoogleSignIn);
