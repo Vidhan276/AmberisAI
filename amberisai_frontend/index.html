@@ -306,7 +306,21 @@ canvas#waveform{width:100%;height:64px;display:block;}
 .footer-copy{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;color:var(--grey);letter-spacing:0.1em;text-transform:uppercase;}
 @media(max-width:640px){.l-section{padding:48px 20px;}.landing-hero{padding:40px 20px;}.hero-stats{gap:24px;}.landing-footer{padding:40px 20px;}.footer-bottom{padding:16px 20px;}}
 </style>
-<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script>
+  const firebaseConfig = {
+  apiKey: "AIzaSyCQCFVmWvYPFkSwtCy6inNoRno_ZaOIPic",
+  authDomain: "amberisai-66a19.firebaseapp.com",
+  projectId: "amberisai-66a19",
+  storageBucket: "amberisai-66a19.firebasestorage.app",
+  messagingSenderId: "456833383952",
+  appId: "1:456833383952:web:72e22eb49254493c725495",
+  measurementId: "G-MTYXEF3NZ7"
+};
+  const auth = firebase.auth();
+  const googleProvider = new firebase.auth.GoogleAuthProvider();
+</script>
 </head>
 <body>
 
@@ -709,16 +723,10 @@ canvas#waveform{width:100%;height:64px;display:block;}
   <!-- CHAT TAB -->
   <div id="tab-chat" class="tab-content">
     <div class="chat-wrap">
-      <div class="key-bar">
-        <span class="key-bar-lbl">GROQ KEY:</span>
-        <input type="password" class="key-inp" id="deepseek-key-input" placeholder="gsk_xxxxxxxxxxxxxx"/>
-        <button class="key-save-btn" id="btn-save-key">SAVE</button>
-        <span id="key-status">🔴</span>
-      </div>
       <div class="chat-messages" id="chat-messages">
         <div class="chat-bubble assistant">
           <div class="bubble-name">Nurse Amber</div>
-          <div class="bubble-text">Hello! I'm Nurse Amber 👶 Paste your Groq API key above and click SAVE. Get a FREE key at console.groq.com — then ask me anything about your baby!</div>
+          <div class="bubble-text">Hello! I'm Nurse Amber 👶 I'm ready to help! Ask me anything about your baby.</div>
         </div>
       </div>
       <div class="typing-ind" id="typing-indicator">
@@ -938,56 +946,37 @@ function loadFromStorage(){
 }
 
 // ── GOOGLE OAUTH ──────────────────────────────────────────────────────────────
-// Replace with your Client ID from console.cloud.google.com
-const GOOGLE_CLIENT_ID = '855340911102-mbcl7k3jbf1h8p9vk4iqm53dodokqac2.apps.googleusercontent.com';
-
-function initGoogleAuth(){
-  if(typeof google === 'undefined' || !google.accounts) return;
-  google.accounts.id.initialize({
-    client_id: GOOGLE_CLIENT_ID,
-    callback: handleGoogleCredential,
-    auto_select: false,
-    cancel_on_tap_outside: true
-  });
-}
-
-async function handleGoogleCredential(response){
-  const idToken = response.credential;
+async function handleGoogleCredential(idToken, user){
   showToast('VERIFYING GOOGLE ACCOUNT...');
   try{
     const res = await fetch(`${API_BASE}/auth/google`,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
+      method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({id_token: idToken})
     });
     const data = await res.json();
-    if(!data.success){ showToast('GOOGLE SIGN-IN FAILED: '+(data.error||'Unknown error')); return; }
-    state.userId   = data.user_id;
-    state.fullName = data.full_name;
-    state.email    = data.email;
-    state.picture  = data.picture||'';
-    state.babies   = data.babies||[];
+    if(!data.success){ showToast('GOOGLE SIGN-IN FAILED: '+(data.error||'Unknown')); return; }
+    state.userId=data.user_id; state.fullName=data.full_name; state.email=data.email;
+    state.picture=data.picture||''; state.babies=data.babies||[];
     saveToStorage();
     showToast(`WELCOME, ${data.full_name.toUpperCase().split(' ')[0]}! 👋`);
-    if(data.is_new_user || state.babies.length===0){
-      showScreen('screen-babysetup');
-    } else {
-      state.currentBaby=state.babies[0];
-      saveToStorage();
-      enterDashboard();
-    }
-  }catch(e){ showToast('CONNECTION ERROR — IS FLASK RUNNING?'); console.error('[Google Auth]',e); }
+    if(data.is_new_user||state.babies.length===0){ showScreen('screen-babysetup'); }
+    else{ state.currentBaby=state.babies[0]; saveToStorage(); enterDashboard(); }
+  }catch(e){ showToast('CONNECTION ERROR'); console.error('[Google Auth]',e); }
 }
 
-function triggerGoogleSignIn(){
-  if(typeof google==='undefined'||!google.accounts){
-    showToast('GOOGLE SDK LOADING... PLEASE WAIT');
-    setTimeout(()=>{initGoogleAuth();triggerGoogleSignIn();},1200);
-    return;
+async function triggerGoogleSignIn(){
+  try{
+    const result = await auth.signInWithPopup(googleProvider);
+    const idToken = await result.user.getIdToken();
+    await handleGoogleCredential(idToken, result.user);
+  }catch(e){
+    if(e.code==='auth/popup-blocked') showToast('ALLOW POPUPS FOR GOOGLE SIGN-IN');
+    else if(e.code!=='auth/popup-closed-by-user') showToast('GOOGLE SIGN-IN ERROR: '+e.message);
   }
-  google.accounts.id.prompt((notification)=>{
-    if(notification.isNotDisplayed()||notification.isSkippedMoment()){
-      showToast('ALLOW POPUPS IN BROWSER FOR GOOGLE SIGN-IN');
+}
+
+document.getElementById('btn-google-login').addEventListener('click',triggerGoogleSignIn);
+document.getElementById('btn-google-register').addEventListener('click',triggerGoogleSignIn);
     }
   });
 }
@@ -1769,15 +1758,6 @@ document.getElementById('btn-refresh-patterns').addEventListener('click', async 
 });
 
 // ── CHAT ──────────────────────────────────────────────────────────────────────
-let _apiKey='';
-document.getElementById('btn-save-key').addEventListener('click',()=>{
-  const val=document.getElementById('deepseek-key-input').value.trim();
-  if(val&&(val.startsWith('sk-')||val.startsWith('gsk_'))&&val.length>15){
-    _apiKey=val;document.getElementById('key-status').textContent='🟢';
-    showToast('KEY SAVED — NURSE AMBER IS READY!');
-    addBubble("I'm ready! Ask me anything about your baby. I'll give you detailed, personalised care advice 💚",'assistant');
-  }else{document.getElementById('key-status').textContent='🔴';showToast('INVALID KEY — MUST START WITH sk- OR gsk_');}
-});
 
 function addBubble(text,role){
   const b=document.createElement('div');b.className=`chat-bubble ${role}`;
@@ -1792,12 +1772,11 @@ function appendToBubble(b,text){b.querySelector('.bubble-text').textContent+=tex
 
 async function sendChat(msg){
   if(!msg.trim())return;
-  if(!_apiKey){showToast('PASTE YOUR GROQ KEY ABOVE AND CLICK SAVE FIRST!');document.getElementById('deepseek-key-input').focus();return;}
   addBubble(msg,'user');
   document.getElementById('chat-input').value='';
   document.getElementById('btn-send').disabled=true;
   document.getElementById('typing-indicator').classList.add('visible');
-  const body={query:msg,api_key:_apiKey,session_id:state.audioAnalysis?.session_id||state.imageAnalysis?.session_id||null,baby_id:state.currentBaby?.id||null};
+  const body={query:msg,session_id:state.audioAnalysis?.session_id||state.imageAnalysis?.session_id||null,baby_id:state.currentBaby?.id||null};
   try{
     const response=await fetch(`${API_BASE}/agent`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
     document.getElementById('typing-indicator').classList.remove('visible');
@@ -1830,7 +1809,6 @@ if('webkitSpeechRecognition' in window||'SpeechRecognition' in window){
 // ── AUTO LOGIN ON PAGE LOAD ───────────────────────────────────────────────────
 window.addEventListener('load',async()=>{
   // Init Google Sign-In
-  setTimeout(initGoogleAuth, 800);
   if(loadFromStorage()&&state.userId){
     try{
       const res=await fetch(`${API_BASE}/auth/me/${state.userId}`);
