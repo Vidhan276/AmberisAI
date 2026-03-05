@@ -7,6 +7,7 @@ Works with both Groq (gsk_) and DeepSeek (sk-) keys.
 """
 
 import json
+import os
 import logging
 import traceback
 from flask import Blueprint, request, jsonify, Response, stream_with_context
@@ -52,7 +53,7 @@ def agent():
         return _error_sse("Empty request body")
 
     query      = (data.get("query") or "").strip()
-    api_key    = (data.get("api_key") or "").strip()
+    api_key = os.environ.get("GROQ_API_KEY", "").strip()
     session_id = data.get("session_id")
     baby_id    = data.get("baby_id")
 
@@ -61,10 +62,7 @@ def agent():
         return _error_sse("Missing 'query' field")
 
     if not api_key:
-        return _error_sse("Missing 'api_key'. Get free Groq key at https://console.groq.com")
-
-    if not validate_api_key(api_key):
-        return _error_sse("Invalid API key. Must start with 'sk-' (DeepSeek) or 'gsk_' (Groq)")
+        return _error_sse("GROQ_API_KEY not configured on server")
 
     # ── 3. RATE LIMITING ──────────────────────────────────────────────────────
     rate_key = str(baby_id) if baby_id else session_id or "anonymous"
