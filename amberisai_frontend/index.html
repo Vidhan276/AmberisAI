@@ -322,6 +322,22 @@ canvas#waveform{width:100%;height:64px;display:block;}
   firebase.initializeApp(firebaseConfig);
   const auth = firebase.auth();
   const googleProvider = new firebase.auth.GoogleAuthProvider();
+
+
+  auth.getRedirectResult().then(async (result) => {
+  console.log('[Auth] Redirect result:', result);
+      if(result && result.user){
+        showToast('SIGNING IN...');
+        const idToken = await result.user.getIdToken();
+        await handleGoogleCredential(idToken, result.user);
+      } else {
+        console.log('[Auth] No redirect result found');
+      }
+}).catch((e) => {
+  console.error('[Auth] Redirect error:', e.code, e.message);
+  showToast('SIGN-IN ERROR: ' + e.message);
+});
+  
 </script>
 </head>
 <body>
@@ -913,14 +929,6 @@ canvas#waveform{width:100%;height:64px;display:block;}
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <script>
-auth.getRedirectResult().then(async (result) => {
-  if(result && result.user){
-    const idToken = await result.user.getIdToken();
-    await handleGoogleCredential(idToken, result.user);
-  }
-}).catch((e) => {
-  if(e.code !== 'auth/no-auth-event') console.error('[Auth redirect]', e);
-});
   
 const API_BASE = 'https://amberisai-backend-ho4b.onrender.com';
 
