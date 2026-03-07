@@ -322,21 +322,6 @@ canvas#waveform{width:100%;height:64px;display:block;}
   firebase.initializeApp(firebaseConfig);
   const auth = firebase.auth();
   const googleProvider = new firebase.auth.GoogleAuthProvider();
-
-
-  auth.getRedirectResult().then(async (result) => {
-  console.log('[Auth] Redirect result:', result);
-      if(result && result.user){
-        showToast('SIGNING IN...');
-        const idToken = await result.user.getIdToken();
-        await handleGoogleCredential(idToken, result.user);
-      } else {
-        console.log('[Auth] No redirect result found');
-      }
-}).catch((e) => {
-  console.error('[Auth] Redirect error:', e.code, e.message);
-  showToast('SIGN-IN ERROR: ' + e.message);
-});
   
 </script>
 </head>
@@ -985,9 +970,19 @@ async function handleGoogleCredential(idToken, user){
 
 async function triggerGoogleSignIn(){
   try{
-    await auth.signInWithRedirect(googleProvider);
+    googleProvider.setCustomParameters({ prompt: 'select_account' });
+    const result = await auth.signInWithPopup(googleProvider);
+    const idToken = await result.user.getIdToken();
+    await handleGoogleCredential(idToken, result.user);
   }catch(e){
-    showToast('GOOGLE SIGN-IN ERROR: '+e.message);
+    console.error('[Auth] Popup error:', e.code, e.message);
+    if(e.code === 'auth/popup-blocked'){
+      showToast('PLEASE ALLOW POPUPS FOR THIS SITE IN YOUR BROWSER');
+    } else if(e.code === 'auth/popup-closed-by-user'){
+      // user closed it, do nothing
+    } else {
+      showToast('SIGN-IN ERROR: ' + e.message);
+    }
   }
 }
 
