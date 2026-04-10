@@ -1,8 +1,16 @@
 import os
 import sys
 import uuid
+import gc
 from datetime import datetime, timezone
 from flask import Blueprint, request, jsonify
+
+# Pre-build matplotlib cache at startup, not during request
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+plt.plot([])
+plt.close()
 
 from utils.file_handler import save_upload
 from utils.visual_generator import generate_visual
@@ -126,6 +134,7 @@ def predict_audio():
     try:
         predictor = get_audio_predictor()
         analysis  = predictor.predict(file_path)
+        gc.collect()  # free memory immediately after prediction
     except Exception as e:
         return jsonify({"success": False, "error": f"Audio prediction failed: {str(e)}"}), 500
 
@@ -167,6 +176,7 @@ def predict_image():
 
     try:
         analysis = predict_image_file(file_path)
+        gc.collect()  # free memory immediately after prediction
     except Exception as e:
         return jsonify({"success": False, "error": f"Image prediction failed: {str(e)}"}), 500
 
